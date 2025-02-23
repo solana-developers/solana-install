@@ -35,15 +35,19 @@ install_dependencies() {
     local os="$1"
     if [[ "$os" == "Linux" ]]; then
         log_info "Detected Linux OS. Updating package list and installing dependencies..."
-        sudo apt-get update
-        sudo apt-get install -y \
-            build-essential \
-            pkg-config \
-            libudev-dev \
-            llvm \
-            libclang-dev \
-            protobuf-compiler \
-            libssl-dev
+        SUDO=""
+        if command -v sudo >/dev/null 2>&1; then
+            SUDO="sudo"
+        fi
+        $SUDO apt-get update 
+        $SUDO apt-get install -y \
+                build-essential \
+                pkg-config \
+                libudev-dev \
+                llvm \
+                libclang-dev \
+                protobuf-compiler \
+                libssl-dev
     elif [[ "$os" == "Darwin" ]]; then
         log_info "Detected macOS."
     else
