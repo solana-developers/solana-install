@@ -104,16 +104,17 @@ install_solana_cli() {
         log_info "Solana CLI installation complete."
     fi
 
+    if [[ "$os" == "Linux" ]]; then
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+    elif [[ "$os" == "Darwin" ]]; then
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.zshrc
+    fi
+
     if command -v solana >/dev/null 2>&1; then
         solana --version
     else
         log_error "Solana CLI installation failed."
-    fi
-
-    if [[ "$os" == "Linux" ]]; then
-        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-    elif [[ "$os" == "Darwin" ]]; then
-        echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.zshrc
     fi
 
     echo ""
