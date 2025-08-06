@@ -135,6 +135,13 @@ install_anchor_cli() {
         cargo install --git https://github.com/coral-xyz/anchor avm
         avm install latest
         avm use latest
+
+        if [[ "$os" == "Linux" ]]; then
+            export PATH="$HOME/.avm/bin:$PATH"
+        elif [[ "$os" == "Darwin" ]]; then
+            echo 'export PATH="$HOME/.avm/bin:$PATH"' >> ~/.zshrc
+        fi
+
         log_info "Anchor CLI installation complete."
     fi
 
