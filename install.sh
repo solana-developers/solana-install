@@ -174,23 +174,40 @@ install_nvm_and_node() {
         . "$NVM_DIR/bash_completion"
     fi
 
+    # Temporary hardcode Node.js version 24.9.0 due to https://github.com/nodejs/node/issues/60176
+    # Original code - checking for latest version
+    # if command -v node >/dev/null 2>&1; then
+    #     local current_node
+    #     current_node=$(node --version)
+    #     local latest_node
+    #     latest_node=$(nvm version-remote node)
+    #     if [ "$current_node" = "$latest_node" ]; then
+    #         log_info "Latest Node.js ($current_node) is already installed."
+    #     else
+    #         log_info "Updating Node.js: Installed ($current_node), Latest ($latest_node)."
+    #         nvm install node
+    #         nvm alias default node
+    #         nvm use default
+    #     fi
+    # else
+
+    # Install specific Node.js version 24.9.0
     if command -v node >/dev/null 2>&1; then
         local current_node
         current_node=$(node --version)
-        local latest_node
-        latest_node=$(nvm version-remote node)
-        if [ "$current_node" = "$latest_node" ]; then
-            log_info "Latest Node.js ($current_node) is already installed."
+        local target_node="v24.9.0"
+        if [ "$current_node" = "$target_node" ]; then
+            log_info "Node.js 24.9.0 is already installed."
         else
-            log_info "Updating Node.js: Installed ($current_node), Latest ($latest_node)."
-            nvm install node
-            nvm alias default node
+            log_info "Installing Node.js 24.9.0: Currently installed ($current_node)."
+            nvm install 24.9.0
+            nvm alias default 24.9.0
             nvm use default
         fi
     else
-        log_info "Installing Node.js via NVM..."
-        nvm install node
-        nvm alias default node
+        log_info "Installing Node.js 24.9.0 via NVM..."
+        nvm install 24.9.0
+        nvm alias default 24.9.0
         nvm use default
     fi
 
