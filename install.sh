@@ -127,18 +127,36 @@ install_solana_cli() {
 # Install Anchor CLI
 ########################################
 install_anchor_cli() {
+    # Function to compare versions
+    version_lt() {
+        [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ] && [ "$1" != "$2" ]
+    }
+
+    local ANCHOR_VERSION="0.31.1"
+    local ANCHOR_TAG="v${ANCHOR_VERSION}"
+
     if command -v anchor >/dev/null 2>&1; then
-        log_info "Anchor CLI is already installed. Updating..."
-        if ! command -v avm >/dev/null 2>&1; then
-            log_info "AVM is not installed. Installing AVM..."
-            cargo install --force --git https://github.com/coral-xyz/anchor avm
+        local current_anchor
+        current_anchor=$(anchor --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
+        if [ "$current_anchor" = "$ANCHOR_VERSION" ]; then
+            log_info "Anchor CLI version $ANCHOR_VERSION is already installed."
+        elif version_lt "$current_anchor" "$ANCHOR_VERSION"; then
+            log_info "Anchor CLI is installed (version $current_anchor). Updating to $ANCHOR_VERSION"
+            if ! command -v avm >/dev/null 2>&1; then
+                log_info "AVM is not installed. Installing AVM..."
+                cargo install --force --git https://github.com/solana-foundation/anchor --tag $ANCHOR_TAG avm
+            fi
+            avm install $ANCHOR_VERSION
+            avm use $ANCHOR_VERSION
+        else
+            log_info "Anchor CLI version $current_anchor already installed."
         fi
-        avm update
     else
         log_info "Installing Anchor CLI..."
-        cargo install --git https://github.com/coral-xyz/anchor avm
-        avm install latest
-        avm use latest
+        cargo install --git https://github.com/solana-foundation/anchor --tag $ANCHOR_TAG avm
+        avm install $ANCHOR_VERSION
+        avm use $ANCHOR_VERSION
         log_info "Anchor CLI installation complete."
     fi
 
@@ -159,7 +177,7 @@ install_nvm_and_node() {
         log_info "NVM is already installed."
     else
         log_info "Installing NVM..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
     fi
 
     export NVM_DIR="$HOME/.nvm"
