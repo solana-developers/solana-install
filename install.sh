@@ -132,7 +132,7 @@ install_anchor_cli() {
         [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ] && [ "$1" != "$2" ]
     }
 
-    local ANCHOR_VERSION="0.31.1"
+    local ANCHOR_VERSION="0.32.1"
     local ANCHOR_TAG="v${ANCHOR_VERSION}"
 
     if command -v anchor >/dev/null 2>&1; then
