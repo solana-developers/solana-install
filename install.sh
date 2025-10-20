@@ -100,11 +100,10 @@ install_solana_cli() {
     local install_cmd='sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"'
 
     if command -v solana >/dev/null 2>&1; then
+        log_info "Solana CLI is already installed. Checking for updates..."
         if command -v agave-install >/dev/null 2>&1; then
-            log_info "Solana CLI is already installed. Updating..."
             agave-install update
         elif command -v solana-install >/dev/null 2>&1; then
-            log_info "Solana CLI is already installed. Updating..."
             eval "$install_cmd"
         fi
         log_info "Solana CLI update complete."
@@ -310,12 +309,12 @@ main() {
     local os
     os=$(detect_os)
 
-    install_dependencies "$os"
-    install_rust
-    install_solana_cli "$os"
-    install_anchor_cli
-    install_nvm_and_node
-    install_yarn
+    install_dependencies "$os" || log_error "Failed to install dependencies."
+    install_rust || log_error "Failed to install Rust."
+    install_solana_cli "$os" || log_error "Failed to install Solana CLI."
+    install_anchor_cli || log_error "Failed to install Anchor CLI."
+    install_nvm_and_node || log_error "Failed to install NVM/Node.js."
+    install_yarn || log_error "Failed to install Yarn."
 
     ensure_nvm_in_shell
 
