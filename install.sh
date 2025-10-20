@@ -97,13 +97,19 @@ install_rust() {
 ########################################
 install_solana_cli() {
     local os="$1"
+    local install_cmd='sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"'
 
     if command -v solana >/dev/null 2>&1; then
-        log_info "Solana CLI is already installed. Updating..."
-        agave-install update
+        log_info "Solana CLI is already installed. Checking for updates..."
+        if command -v agave-install >/dev/null 2>&1; then
+            agave-install update
+        elif command -v solana-install >/dev/null 2>&1; then
+            eval "$install_cmd"
+        fi
+        log_info "Solana CLI update complete."
     else
         log_info "Installing Solana CLI..."
-        sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+        eval "$install_cmd"
         log_info "Solana CLI installation complete."
     fi
 
@@ -192,40 +198,25 @@ install_nvm_and_node() {
         . "$NVM_DIR/bash_completion"
     fi
 
-    # Temporary hardcode Node.js version 24.9.0 due to https://github.com/nodejs/node/issues/60176
-    # Original code - checking for latest version
-    # if command -v node >/dev/null 2>&1; then
-    #     local current_node
-    #     current_node=$(node --version)
-    #     local latest_node
-    #     latest_node=$(nvm version-remote node)
-    #     if [ "$current_node" = "$latest_node" ]; then
-    #         log_info "Latest Node.js ($current_node) is already installed."
-    #     else
-    #         log_info "Updating Node.js: Installed ($current_node), Latest ($latest_node)."
-    #         nvm install node
-    #         nvm alias default node
-    #         nvm use default
-    #     fi
-    # else
+    # Install specific Node.js version
+    local node_version="24.10.0"
+    local target_node="v${node_version}"
 
-    # Install specific Node.js version 24.9.0
     if command -v node >/dev/null 2>&1; then
         local current_node
         current_node=$(node --version)
-        local target_node="v24.9.0"
-        if [ "$current_node" = "$target_node" ]; then
-            log_info "Node.js 24.9.0 is already installed."
-        else
-            log_info "Installing Node.js 24.9.0: Currently installed ($current_node)."
-            nvm install 24.9.0
-            nvm alias default 24.9.0
+        if version_lt "$current_node" "$target_node"; then
+            log_info "Installing Node.js ${node_version}: Currently installed ($current_node)."
+            nvm install "$node_version"
+            nvm alias default "$node_version"
             nvm use default
+        else
+            log_info "Node.js ${current_node} is already installed."
         fi
     else
-        log_info "Installing Node.js 24.9.0 via NVM..."
-        nvm install 24.9.0
-        nvm alias default 24.9.0
+        log_info "Installing Node.js ${node_version} via NVM..."
+        nvm install "$node_version"
+        nvm alias default "$node_version"
         nvm use default
     fi
 
@@ -303,12 +294,12 @@ main() {
     local os
     os=$(detect_os)
 
-    install_dependencies "$os"
-    install_rust
-    install_solana_cli "$os"
-    install_anchor_cli
-    install_nvm_and_node
-    install_yarn
+    install_dependencies "$os" || log_error "Failed to install dependencies."
+    install_rust || log_error "Failed to install Rust."
+    install_solana_cli "$os" || log_error "Failed to install Solana CLI."
+    install_anchor_cli || log_error "Failed to install Anchor CLI."
+    install_nvm_and_node || log_error "Failed to install NVM/Node.js."
+    install_yarn || log_error "Failed to install Yarn."
 
     ensure_nvm_in_shell
 
