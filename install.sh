@@ -97,13 +97,20 @@ install_rust() {
 ########################################
 install_solana_cli() {
     local os="$1"
+    local install_cmd='sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"'
 
     if command -v solana >/dev/null 2>&1; then
-        log_info "Solana CLI is already installed. Updating..."
-        agave-install update
+        if command -v agave-install >/dev/null 2>&1; then
+            log_info "Solana CLI is already installed. Updating..."
+            agave-install update
+        elif command -v solana-install >/dev/null 2>&1; then
+            log_info "Solana CLI is already installed. Updating..."
+            eval "$install_cmd"
+        fi
+        log_info "Solana CLI update complete."
     else
         log_info "Installing Solana CLI..."
-        sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+        eval "$install_cmd"
         log_info "Solana CLI installation complete."
     fi
 
