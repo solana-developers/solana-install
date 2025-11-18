@@ -12,6 +12,43 @@ log_error() {
     printf "[ERROR] %s\n" "$1" >&2
 }
 
+########################################
+# Helper function to compare installed versions
+########################################
+version_lt() {
+    local ver1="${1#v}"
+    local ver2="${2#v}"
+
+    if [[ -z "$ver1" ]]; then
+        ver1="0"
+    fi
+    if [[ -z "$ver2" ]]; then
+        ver2="0"
+    fi
+
+    local IFS='.'
+    read -r -a v1 <<< "$ver1"
+    read -r -a v2 <<< "$ver2"
+
+    local len="${#v1[@]}"
+    if (( ${#v2[@]} > len )); then
+        len="${#v2[@]}"
+    fi
+
+    local i
+    for ((i = 0; i < len; i++)); do
+        local num1="${v1[i]:-0}"
+        local num2="${v2[i]:-0}"
+        if ((10#$num1 < 10#$num2)); then
+            return 0
+        elif ((10#$num1 > 10#$num2)); then
+            return 1
+        fi
+    done
+
+    return 1
+}
+
 
 ########################################
 # OS Detection
@@ -133,11 +170,6 @@ install_solana_cli() {
 # Install Anchor CLI
 ########################################
 install_anchor_cli() {
-    # Function to compare versions
-    version_lt() {
-        [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ] && [ "$1" != "$2" ]
-    }
-
     local ANCHOR_VERSION="0.32.1"
     local ANCHOR_TAG="v${ANCHOR_VERSION}"
 
@@ -245,6 +277,76 @@ install_yarn() {
 }
 
 ########################################
+# Install Surfpool
+########################################
+install_surfpool() {
+    local SURFPOOL_VERSION="0.12.0"
+    local target_version="${SURFPOOL_VERSION#v}"
+
+    local current_version=""
+    if command -v surfpool >/dev/null 2>&1; then
+        current_version=$(surfpool --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -n1 || true)
+        current_version="${current_version#v}"
+
+        if [[ -z "$current_version" ]]; then
+            log_info "Unable to determine current Surfpool version; reinstalling to ensure $target_version."
+        elif version_lt "$current_version" "$target_version"; then
+            log_info "Updating Surfpool from $current_version to $target_version..."
+        elif [[ "$current_version" != "$target_version" ]]; then
+            log_info "Surfpool version $current_version is newer than requested $target_version. Skipping installation."
+            echo ""
+            return 0
+        else
+            log_info "Surfpool version $current_version already installed."
+            echo ""
+            return 0
+        fi
+    else
+        log_info "Surfpool not found. Installing version $target_version..."
+    fi
+
+    log_info "Installing Surfpool ($target_version)..."
+
+    # Create a temporary directory for installer artifacts to remove after installation
+    local installer_tmp_dir
+    installer_tmp_dir=$(mktemp -d 2>/dev/null || true)
+    if [[ -z "$installer_tmp_dir" ]]; then
+        log_error "Failed to create temporary directory for Surfpool installation."
+        return 1
+    fi
+
+    (
+        set -e
+        cd "$installer_tmp_dir"
+        curl -sL https://run.surfpool.run/ | bash
+    )
+    local install_status=$?
+
+    rm -rf "$installer_tmp_dir"
+
+    if [[ $install_status -ne 0 ]]; then
+        log_error "Surfpool installation failed."
+        return $install_status
+    fi
+
+    if command -v surfpool >/dev/null 2>&1; then
+        local new_version
+        new_version=$(surfpool --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -n1 || true)
+        new_version="${new_version#v}"
+        if [[ "$new_version" != "$target_version" ]]; then
+            log_error "Surfpool version $new_version installed, but $target_version was requested."
+            return 1
+        fi
+        log_info "Surfpool installation complete."
+    else
+        log_error "Surfpool installation failed."
+        return 1
+    fi
+
+    echo ""
+}
+
+########################################
 # Print Installed Versions
 ########################################
 print_versions() {
@@ -253,6 +355,7 @@ print_versions() {
     echo "Rust: $(rustc --version 2>/dev/null || echo 'Not installed')"
     echo "Solana CLI: $(solana --version 2>/dev/null || echo 'Not installed')"
     echo "Anchor CLI: $(anchor --version 2>/dev/null || echo 'Not installed')"
+    echo "Surfpool CLI: $(surfpool --version 2>/dev/null || echo 'Not installed')"
     echo "Node.js: $(node --version 2>/dev/null || echo 'Not installed')"
     echo "Yarn: $(yarn --version 2>/dev/null || echo 'Not installed')"
     echo ""
@@ -300,6 +403,7 @@ main() {
     install_anchor_cli || log_error "Failed to install Anchor CLI."
     install_nvm_and_node || log_error "Failed to install NVM/Node.js."
     install_yarn || log_error "Failed to install Yarn."
+    install_surfpool || log_error "Failed to install Surfpool."
 
     ensure_nvm_in_shell
 
