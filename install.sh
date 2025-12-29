@@ -71,22 +71,46 @@ detect_os() {
 install_dependencies() {
     local os="$1"
     if [[ "$os" == "Linux" ]]; then
-        log_info "Detected Linux OS."
         SUDO=""
         if command -v sudo >/dev/null 2>&1; then
             SUDO="sudo"
         fi
+
         if command -v apt-get >/dev/null 2>&1; then
-            log_info "Detected apt-get. Updating package list and installing dependencies..."
+            log_info "Detected apt (Debian/Ubuntu)."
             $SUDO apt-get update
             $SUDO apt-get install -y \
-                    build-essential \
-                    pkg-config \
-                    libudev-dev \
-                    llvm \
-                    libclang-dev \
-                    protobuf-compiler \
-                    libssl-dev
+                build-essential \
+                pkg-config \
+                libudev-dev \
+                llvm \
+                libclang-dev \
+                protobuf-compiler \
+                libssl-dev
+        elif command -v dnf >/dev/null 2>&1; then
+            log_info "Detected dnf (Fedora/RHEL)."
+            $SUDO dnf install -y \
+                gcc \
+                gcc-c++ \
+                make \
+                pkgconf-pkg-config \
+                systemd-devel \
+                llvm \
+                clang-devel \
+                protobuf-compiler \
+                openssl-devel
+        elif command -v pacman >/dev/null 2>&1; then
+            log_info "Detected pacman (Arch)."
+            $SUDO pacman -Sy --noconfirm \
+                base-devel \
+                pkgconf \
+                systemd \
+                llvm \
+                clang \
+                protobuf \
+                openssl
+        else
+            log_info "No supported package manager found (apt/dnf/pacman)."
         fi
     elif [[ "$os" == "Darwin" ]]; then
         log_info "Detected macOS."
