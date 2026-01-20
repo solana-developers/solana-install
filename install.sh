@@ -163,7 +163,13 @@ install_solana_cli() {
     if command -v solana >/dev/null 2>&1; then
         log_info "Solana CLI is already installed. Checking for updates..."
         if command -v agave-install >/dev/null 2>&1; then
-            agave-install update
+            if agave-install info -l 2>/dev/null | grep -q "Release channel: stable"; then
+                log_info "Release channel is stable. Running agave-install update..."
+                agave-install update
+            else
+                log_info "Updating to latest stable release..."
+                eval "$install_cmd"
+            fi
         elif command -v solana-install >/dev/null 2>&1; then
             eval "$install_cmd"
         fi
@@ -304,7 +310,7 @@ install_yarn() {
 # Install Surfpool
 ########################################
 install_surfpool() {
-    local SURFPOOL_VERSION="0.12.0"
+    local SURFPOOL_VERSION="1.0.0"
     local target_version="${SURFPOOL_VERSION#v}"
 
     local current_version=""
