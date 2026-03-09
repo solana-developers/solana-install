@@ -386,7 +386,7 @@ install_solana_dev_skill() {
     fi
 
     log_info "Installing Solana dev skill for AI coding agents..."
-    if npx -y skills add https://github.com/solana-foundation/solana-dev-skill --all -y; then
+    if npx -y skills add https://github.com/solana-foundation/solana-dev-skill --all -y -g; then
         log_info "Solana dev skill installation complete."
     else
         log_info "Solana dev skill installation skipped (non-fatal)."
