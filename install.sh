@@ -377,6 +377,25 @@ install_surfpool() {
 }
 
 ########################################
+# Install Solana Dev Skill for AI Agents
+########################################
+install_solana_dev_skill() {
+    if ! command -v npx >/dev/null 2>&1; then
+        log_info "npx not found, skipping Solana dev skill installation."
+        return 0
+    fi
+
+    log_info "Installing Solana dev skill for AI coding agents..."
+    if npx -y skills add https://github.com/solana-foundation/solana-dev-skill --skill '*' -y -g; then
+        log_info "Solana dev skill installation complete."
+    else
+        log_info "Solana dev skill installation skipped (non-fatal)."
+    fi
+
+    echo ""
+}
+
+########################################
 # Print Installed Versions
 ########################################
 print_versions() {
@@ -434,6 +453,7 @@ main() {
     install_nvm_and_node || log_error "Failed to install NVM/Node.js."
     install_yarn || log_error "Failed to install Yarn."
     install_surfpool || log_error "Failed to install Surfpool."
+    install_solana_dev_skill || log_error "Failed to install Solana dev skill."
 
     ensure_nvm_in_shell
 

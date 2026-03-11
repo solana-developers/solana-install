@@ -14,6 +14,7 @@ To install the following dependencies for local development:
 - Rust
 - Node.js
 - Yarn
+- Solana dev skill for AI coding agents (Claude Code, Codex, Cursor, etc.)
 
 Output upon successful installation should be similar to the following:
 
