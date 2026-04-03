@@ -310,7 +310,7 @@ install_yarn() {
 # Install Surfpool
 ########################################
 install_surfpool() {
-    local SURFPOOL_VERSION="1.1.1"
+    local SURFPOOL_VERSION="1.1.2"
     local target_version="${SURFPOOL_VERSION#v}"
 
     local current_version=""
