@@ -200,7 +200,7 @@ install_solana_cli() {
 # Install Anchor CLI
 ########################################
 install_anchor_cli() {
-    local ANCHOR_VERSION="1.0.1"
+    local ANCHOR_VERSION="1.1.2"
     local ANCHOR_TAG="v${ANCHOR_VERSION}"
 
     if command -v anchor >/dev/null 2>&1; then
@@ -310,7 +310,7 @@ install_yarn() {
 # Install Surfpool
 ########################################
 install_surfpool() {
-    local SURFPOOL_VERSION="1.1.2"
+    local SURFPOOL_VERSION="1.4.0"
     local target_version="${SURFPOOL_VERSION#v}"
 
     local current_version=""
