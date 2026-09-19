@@ -199,34 +199,40 @@ install_solana_cli() {
 ########################################
 # Install Anchor CLI
 ########################################
-install_anchor_cli() {
-    local ANCHOR_VERSION="1.1.2"
-    local ANCHOR_TAG="v${ANCHOR_VERSION}"
+ensure_avm_binary() {
+    local avm_bin="$HOME/.avm/bin/avm"
+    local nightly_avm_bin="$HOME/.avm/bin/avm-nightly"
 
-    if command -v anchor >/dev/null 2>&1; then
-        local current_anchor
-        current_anchor=$(anchor --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-
-        if [ "$current_anchor" = "$ANCHOR_VERSION" ]; then
-            log_info "Anchor CLI version $ANCHOR_VERSION is already installed."
-        elif version_lt "$current_anchor" "$ANCHOR_VERSION"; then
-            log_info "Anchor CLI is installed (version $current_anchor). Updating to $ANCHOR_VERSION"
-            if ! command -v avm >/dev/null 2>&1; then
-                log_info "AVM is not installed. Installing AVM..."
-                cargo install --force --git https://github.com/solana-foundation/anchor --tag $ANCHOR_TAG avm
-            fi
-            avm install $ANCHOR_VERSION
-            avm use $ANCHOR_VERSION
-        else
-            log_info "Anchor CLI version $current_anchor already installed."
-        fi
-    else
-        log_info "Installing Anchor CLI..."
-        cargo install --git https://github.com/solana-foundation/anchor --tag $ANCHOR_TAG avm
-        avm install $ANCHOR_VERSION
-        avm use $ANCHOR_VERSION
-        log_info "Anchor CLI installation complete."
+    if [[ ! -s "$avm_bin" && -s "$nightly_avm_bin" ]]; then
+        log_info "Repairing empty AVM binary from the verified nightly download..."
+        cp "$nightly_avm_bin" "$avm_bin"
+        chmod 755 "$avm_bin"
     fi
+
+    if [[ ! -s "$avm_bin" ]]; then
+        log_error "AVM installation did not produce a non-empty binary at $avm_bin."
+        return 1
+    fi
+
+    if ! "$avm_bin" --version >/dev/null 2>&1; then
+        log_error "AVM binary at $avm_bin is not runnable."
+        return 1
+    fi
+}
+
+install_anchor_cli() {
+    log_info "Installing AVM..."
+    curl -sSfL https://raw.githubusercontent.com/otter-sec/anchor/master/avm/install | sh
+
+    export PATH="$HOME/.avm/bin:$PATH"
+    ensure_avm_binary
+
+    log_info "Installing the latest Anchor CLI with AVM..."
+    # The AVM installer enables the nightly channel; return to release resolution.
+    avm nightly --disable
+    avm install latest
+    avm use latest
+    log_info "Anchor CLI installation complete."
 
     if command -v anchor >/dev/null 2>&1; then
         anchor --version
