@@ -13,7 +13,6 @@ To install the following dependencies for local development:
 - Surfpool CLI
 - Rust
 - Node.js
-- Yarn
 - Solana dev skill for AI coding agents (Claude Code, Codex, Cursor, etc.)
 
 Output upon successful installation should be similar to the following:
@@ -25,5 +24,4 @@ Solana CLI: solana-cli 3.0.10 (src:96c3a851; feat:3604001754, client:Agave)
 Anchor CLI: anchor-cli 0.32.1
 Surfpool CLI: surfpool 0.12.0
 Node.js: v24.10.0
-Yarn: 1.22.1
 ```

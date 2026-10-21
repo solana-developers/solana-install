@@ -287,26 +287,6 @@ install_nvm_and_node() {
 
 
 ########################################
-# Install Yarn
-########################################
-install_yarn() {
-    if command -v yarn >/dev/null 2>&1; then
-        log_info "Yarn is already installed."
-    else
-        log_info "Installing Yarn..."
-        npm install --global yarn
-    fi
-
-    if command -v yarn >/dev/null 2>&1; then
-        yarn --version
-    else
-        log_error "Yarn installation failed."
-    fi
-
-    echo ""
-}
-
-########################################
 # Install Surfpool
 ########################################
 install_surfpool() {
@@ -406,7 +386,6 @@ print_versions() {
     echo "Anchor CLI: $(anchor --version 2>/dev/null || echo 'Not installed')"
     echo "Surfpool CLI: $(surfpool --version 2>/dev/null || echo 'Not installed')"
     echo "Node.js: $(node --version 2>/dev/null || echo 'Not installed')"
-    echo "Yarn: $(yarn --version 2>/dev/null || echo 'Not installed')"
     echo ""
 }
 
@@ -451,7 +430,6 @@ main() {
     install_solana_cli "$os" || log_error "Failed to install Solana CLI."
     install_anchor_cli || log_error "Failed to install Anchor CLI."
     install_nvm_and_node || log_error "Failed to install NVM/Node.js."
-    install_yarn || log_error "Failed to install Yarn."
     install_surfpool || log_error "Failed to install Surfpool."
     install_solana_dev_skill || log_error "Failed to install Solana dev skill."
 
