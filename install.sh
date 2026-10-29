@@ -197,6 +197,39 @@ install_solana_cli() {
 }
 
 ########################################
+# Install cargo-build-sbf
+########################################
+install_cargo_build_sbf() {
+    local CARGO_BUILD_SBF_VERSION="4.5.0"
+    local sbf_bin="$HOME/.cargo/bin/cargo-build-sbf"
+
+    if [[ -x "$sbf_bin" ]]; then
+        local current_sbf
+        current_sbf=$("$sbf_bin" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
+        if version_lt "$current_sbf" "$CARGO_BUILD_SBF_VERSION"; then
+            log_info "cargo-build-sbf is installed (version $current_sbf). Updating to $CARGO_BUILD_SBF_VERSION"
+            cargo install cargo-build-sbf --version "$CARGO_BUILD_SBF_VERSION" --force --locked || return 1
+        else
+            log_info "cargo-build-sbf version $current_sbf already installed."
+        fi
+    else
+        log_info "Installing cargo-build-sbf..."
+        cargo install cargo-build-sbf --version "$CARGO_BUILD_SBF_VERSION" --force --locked || return 1
+        log_info "cargo-build-sbf installation complete."
+    fi
+
+    if [[ -x "$sbf_bin" ]]; then
+        "$sbf_bin" --version
+    else
+        log_error "cargo-build-sbf installation failed."
+        return 1
+    fi
+
+    echo ""
+}
+
+########################################
 # Install Anchor CLI
 ########################################
 install_anchor_cli() {
@@ -403,6 +436,7 @@ print_versions() {
     echo "Installed Versions:"
     echo "Rust: $(rustc --version 2>/dev/null || echo 'Not installed')"
     echo "Solana CLI: $(solana --version 2>/dev/null || echo 'Not installed')"
+    echo "cargo-build-sbf: $( (cargo-build-sbf --version 2>/dev/null || echo 'Not installed') | head -1)"
     echo "Anchor CLI: $(anchor --version 2>/dev/null || echo 'Not installed')"
     echo "Surfpool CLI: $(surfpool --version 2>/dev/null || echo 'Not installed')"
     echo "Node.js: $(node --version 2>/dev/null || echo 'Not installed')"
@@ -449,6 +483,7 @@ main() {
     install_dependencies "$os" || log_error "Failed to install dependencies."
     install_rust || log_error "Failed to install Rust."
     install_solana_cli "$os" || log_error "Failed to install Solana CLI."
+    install_cargo_build_sbf || log_error "Failed to install cargo-build-sbf."
     install_anchor_cli || log_error "Failed to install Anchor CLI."
     install_nvm_and_node || log_error "Failed to install NVM/Node.js."
     install_yarn || log_error "Failed to install Yarn."

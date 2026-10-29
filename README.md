@@ -9,6 +9,7 @@ curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev 
 To install the following dependencies for local development:
 
 - Solana CLI
+- cargo-build-sbf
 - Anchor CLI
 - Surfpool CLI
 - Rust
